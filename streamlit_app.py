@@ -5,15 +5,15 @@ import locale
 import math
 
 # 한국어 로케일 설정
-# locale.setlocale(locale.LC_TIME, 'ko_KR.UTF-8')
+locale.setlocale(locale.LC_TIME, 'ko_KR.UTF-8')
 
 # Streamlit Debug Mode 활성화
-st.set_page_config(page_title='전설의 패치 리뷰 분석 대시보드 (10월 20일 업데이트)', layout='wide')
+st.set_page_config(page_title='전설의 패치 리뷰 분석 대시보드 (10월 20일 업데이트)')
 
 debug = True
 
 # 파일 참조
-st.title('전설의 패치 리뷰 분석 대시보드 (10월 20일 업데이트 ✅)')
+st.title('전설의 패치 리뷰 분석 대시보드(10월 20일 업데이트)')
 st.markdown('---')
 
 # 이미 존재하는 파일 참조
