@@ -8,12 +8,13 @@ import math
 locale.setlocale(locale.LC_TIME, 'ko_KR.UTF-8')
 
 # Streamlit Debug Mode 활성화
-st.set_page_config(page_title='전설의 패치 리뷰 분석 대시보드', layout='wide')
+st.set_page_config(page_title='전설의 패치 리뷰 분석 대시보드 (10월 20일 업데이트)', layout='wide')
 
 debug = True
 
 # 파일 참조
 st.title('전설의 패치 리뷰 분석 대시보드')
+st.markdown('---')
 
 # 이미 존재하는 파일 참조
 file_path = '전설의패치_reviews.xlsx'
@@ -41,6 +42,14 @@ df['category'] = df['추가정보'].map(category_mapping)
 
 # 각 카테고리별 부정 리뷰 개수 및 20일에 평균 대비 변화량 계산
 cols = st.columns(4)
+with cols[0]:
+    total_reviews_20 = len(df[df['리뷰 작성시간'].dt.date == pd.to_datetime('2024-10-20').date()])
+    st.metric(
+        label='10월 20일 전체 리뷰 개수',
+        value=f'{total_reviews_20}'
+    )
+cols = st.columns(4)
+summary_20 = []
 for i, category in enumerate(category_mapping.values()):
     col = cols[i % len(cols)]
     category_df = df[df['category'] == category]
@@ -48,6 +57,7 @@ for i, category in enumerate(category_mapping.values()):
     avg_negative_count = negative_count / len(category_df['리뷰 작성시간'].unique()) if len(category_df['리뷰 작성시간'].unique()) > 0 else 0
     count_20 = len(category_df[(category_df['sentiment'] == 1) & (category_df['리뷰 작성시간'].dt.date == pd.to_datetime('2024-10-20').date())])
     delta = ((count_20 - avg_negative_count) / avg_negative_count * 100) if avg_negative_count > 0 else 0
+    summary_20.append(f'{category}: 10월 20일 부정 리뷰 개수: {count_20}, 평균 대비 변화: {delta:+.2f}%')
 
     with col:
         st.metric(
@@ -57,13 +67,14 @@ for i, category in enumerate(category_mapping.values()):
             delta_color='normal'
         )
 
+
 # Streamlit에서 보기 간격 선택 버튼 추가
 interval = st.radio('보기 간격 선택', ['1일 간격', '7일 간격', '1개월 간격'], horizontal=True)
 
 # 선택된 간격에 따라 sentiment 값이 1인 데이터 집계
 sentiment_1_df = df[df['sentiment'] == 1]
 if interval == '1일 간격':
-    all_dates = pd.date_range(start='2024-10-12', end='2024-10-21', freq='D')
+    all_dates = pd.date_range(start='2024-10-12', end='2024-10-20', freq='D')
     sentiment_1_count = sentiment_1_df.set_index('리뷰 작성시간').resample('D').size().reindex(all_dates, fill_value=0).reset_index(name='count')
     sentiment_1_count.rename(columns={'index': '리뷰 작성시간'}, inplace=True)
 elif interval == '7일 간격':
@@ -75,7 +86,7 @@ elif interval == '1개월 간격':
 if not sentiment_1_count.empty:
     # Altair를 사용해 sentiment 값이 1인 리뷰 빈도수를 선 그래프로 표시 (주황색 선)
     sentiment_line_chart = alt.Chart(sentiment_1_count).mark_line(color='orange').encode(
-        x=alt.X('리뷰 작성시간:T', title='날짜', axis=alt.Axis(format='%Y-%m-%d', labelAngle=-45)),
+        x=alt.X('리뷰 작성시간:T', title='날짜', axis=alt.Axis(format='%Y-%m-%d', labelAngle=-45, tickCount='day')),
         y=alt.Y('count:Q', title='부정적인 댓글 개수')
     ).properties(
         title='날짜별 부정적인 댓글 개수'
@@ -91,7 +102,7 @@ filtered_df = df[df['category'].isin(selected_categories)]
 
 # 선택된 간격에 따라 카테고리별 데이터 집계
 if interval == '1일 간격':
-    all_dates = pd.date_range(start='2024-10-12', end='2024-10-21', freq='D')
+    all_dates = pd.date_range(start='2024-10-12', end='2024-10-20', freq='D')
     category_count = filtered_df.set_index('리뷰 작성시간').groupby([pd.Grouper(freq='D'), 'category']).size().unstack(fill_value=0).reindex(all_dates, fill_value=0).stack().reset_index(name='count')
     category_count.rename(columns={'level_0': '리뷰 작성시간'}, inplace=True)
 elif interval == '7일 간격':
@@ -126,14 +137,14 @@ else:
     st.warning("선택한 간격에 해당하는 데이터가 없습니다.")
 
 # '기타' 카테고리의 10월 21일 데이터 필터링
-etc_category_21_df = df[(df['category'] == '기타') & (df['리뷰 작성시간'].dt.date == pd.to_datetime('2024-10-21').date())]
+# etc_category_21_df = df[(df['category'] == '기타') & (df['리뷰 작성시간'].dt.date == pd.to_datetime('2024-10-20').date())]
 
-# '기타' 카테고리의 10월 21일 데이터 테이블 표시
-if not etc_category_21_df.empty:
-    st.write("기타 카테고리의 10월 21일 추가된 리뷰:")
-    st.dataframe(etc_category_21_df[['작성 리뷰 평점', '리뷰 내용']])
-else:
-    st.info("10월 21일에 추가된 '기타' 카테고리 데이터가 없습니다.")
+# # '기타' 카테고리의 10월 21일 데이터 테이블 표시
+# if not etc_category_21_df.empty:
+#     st.write("기타 카테고리의 10월 21일 추가된 리뷰:")
+#     st.dataframe(etc_category_21_df[['작성 리뷰 평점', '리뷰 내용']])
+# else:
+#     st.info("10월 21일에 추가된 '기타' 카테고리 데이터가 없습니다.")
 
 # '기타' 카테고리의 10월 20일 데이터 필터링
 etc_category_20_df = df[(df['category'] == '기타') & (df['리뷰 작성시간'].dt.date == pd.to_datetime('2024-10-20').date())]
