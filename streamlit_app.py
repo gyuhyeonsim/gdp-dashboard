@@ -4,8 +4,6 @@ import altair as alt
 import locale
 import math
 
-# 한국어 로케일 설정
-locale.setlocale(locale.LC_TIME, 'ko_KR.UTF-8')
 
 # Streamlit Debug Mode 활성화
 st.set_page_config(page_title='전설의 패치 리뷰 분석 대시보드 (10월 20일 업데이트)')
