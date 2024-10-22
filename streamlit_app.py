@@ -13,7 +13,7 @@ st.set_page_config(page_title='전설의 패치 리뷰 분석 대시보드 (10�
 debug = True
 
 # 파일 참조
-st.title('전설의 패치 리뷰 분석 대시보드')
+st.title('전설의 패치 리뷰 분석 대시보드 (10월 20일 업데이트 ✅)')
 st.markdown('---')
 
 # 이미 존재하는 파일 참조
